@@ -74,6 +74,14 @@ jobs:
           CC: 'clang -D_BSD_SOURCE'
           TARGET_CC: 'clang -D_BSD_SOURCE'
 
+      - name: Rename native module for webpack resolution
+        run: |
+          cd packages/backend/native
+          cp server-native.node server-native.x64.node
+          touch server-native.arm64.node
+          touch server-native.armv7.node
+          ls -la *.node
+
       # ─── Build Server ──────────────────────────────────────────────
       - name: Build Server
         run: yarn workspace @affine/server build
