@@ -34,6 +34,14 @@ export const workbenchRoutes = [
     lazy: () => import('./pages/workspace/nocodb-view/index'),
   },
   {
+    path: '/home',
+    lazy: () => import('./pages/workspace/home/index'),
+  },
+  {
+    path: '/projects',
+    lazy: () => import('./pages/workspace/projects/index'),
+  },
+  {
     path: '/:pageId',
     lazy: () => import('./pages/workspace/detail-page/detail-page'),
   },

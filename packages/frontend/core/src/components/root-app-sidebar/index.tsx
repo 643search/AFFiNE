@@ -47,9 +47,11 @@ import {
   workspaceAndUserWrapper,
   workspaceWrapper,
 } from './index.css';
+import { AppSidebarHomeButton } from './home-button';
 import { InviteMembersButton } from './invite-members-button';
 import { AppSidebarJournalButton } from './journal-button';
 import { NotificationButton } from './notification-button';
+import { AppSidebarProjectsButton } from './projects-button';
 import { SidebarAudioPlayer } from './sidebar-audio-player';
 import { TemplateDocEntrance } from './template-doc-entrance';
 import { TrashButton } from './trash-button';
@@ -228,8 +230,10 @@ export const RootAppSidebar = memo((): ReactElement => {
           />
           <AddPageButton />
         </div>
+        <AppSidebarHomeButton />
         <AllDocsButton />
         <AppSidebarJournalButton />
+        <AppSidebarProjectsButton />
         {sessionStatus === 'authenticated' && <NotificationButton />}
         <AIChatButton />
         <NocoDBButton />
