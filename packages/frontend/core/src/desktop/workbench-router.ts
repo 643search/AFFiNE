@@ -30,6 +30,10 @@ export const workbenchRoutes = [
     lazy: () => import('./pages/workspace/trash-page'),
   },
   {
+    path: '/nocodb',
+    lazy: () => import('./pages/workspace/nocodb-view/index'),
+  },
+  {
     path: '/:pageId',
     lazy: () => import('./pages/workspace/detail-page/detail-page'),
   },

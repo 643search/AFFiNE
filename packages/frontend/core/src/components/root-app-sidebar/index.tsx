@@ -21,6 +21,7 @@ import type { Store } from '@blocksuite/affine/store';
 import {
   AiOutlineIcon,
   AllDocsIcon,
+  DatabaseTableViewIcon,
   ImportIcon,
   JournalIcon,
   SettingsIcon,
@@ -112,6 +113,22 @@ const AIChatButton = () => {
       <span data-testid="ai-chat">
         {t['com.affine.workspaceSubPath.chat']()}
       </span>
+    </MenuLinkItem>
+  );
+};
+
+const NocoDBButton = () => {
+  const { workbenchService } = useServices({
+    WorkbenchService,
+  });
+  const workbench = workbenchService.workbench;
+  const nocodbActive = useLiveData(
+    workbench.location$.selector(location => location.pathname === '/nocodb')
+  );
+
+  return (
+    <MenuLinkItem icon={<DatabaseTableViewIcon />} active={nocodbActive} to={'/nocodb'}>
+      <span data-testid="nocodb-database">Database</span>
     </MenuLinkItem>
   );
 };
@@ -215,6 +232,7 @@ export const RootAppSidebar = memo((): ReactElement => {
         <AppSidebarJournalButton />
         {sessionStatus === 'authenticated' && <NotificationButton />}
         <AIChatButton />
+        <NocoDBButton />
         <MenuItem
           data-testid="slider-bar-workspace-setting-button"
           icon={<SettingsIcon />}
