@@ -18,11 +18,9 @@ import {
 import * as styles from './index.css';
 
 const displayPreference: ExplorerDisplayPreference = {
-  view: 'grid',
+  view: 'list',
   displayProperties: [
     'system:updatedAt',
-    'system:createdBy',
-    'system:tags',
   ],
   orderBy: {
     type: 'system',
@@ -31,9 +29,9 @@ const displayPreference: ExplorerDisplayPreference = {
   },
   groupBy: undefined,
   showDocIcon: true,
-  showDocPreview: true,
-  quickFavorite: true,
-  showDragHandle: true,
+  showDocPreview: false,
+  quickFavorite: false,
+  showDragHandle: false,
   showMoreOperation: true,
 };
 
