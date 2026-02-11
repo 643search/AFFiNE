@@ -32,3 +32,15 @@ export const emptyIcon = style({
   fontSize: '48px',
   opacity: 0.4,
 });
+
+export const loadingState = style({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '12px',
+  flex: 1,
+  color: cssVarV2('text/secondary'),
+  fontSize: '14px',
+  padding: '48px 24px',
+});

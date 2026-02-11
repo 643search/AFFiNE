@@ -116,7 +116,7 @@ app
   .then(registerEvents)
   .then(launch)
   .then(createApplicationMenu)
-  .then(registerUpdater)
+  // .then(registerUpdater) // Disabled: custom build, no auto-updates
   .then(setupRecordingFeature)
   .then(setupTrayState)
   .catch(e => console.error('Failed create window:', e));

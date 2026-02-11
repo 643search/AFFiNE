@@ -1,3 +1,4 @@
+import { Loading } from '@affine/component';
 import {
   createDocExplorerContext,
   DocExplorerContext,
@@ -5,7 +6,6 @@ import {
 import { DocsExplorer } from '@affine/core/components/explorer/docs-view/docs-list';
 import type { ExplorerDisplayPreference } from '@affine/core/components/explorer/types';
 import { DocsService } from '@affine/core/modules/doc';
-import { WorkspaceService } from '@affine/core/modules/workspace';
 import { ViewLayersIcon } from '@blocksuite/icons/rc';
 import { useLiveData, useService } from '@toeverything/infra';
 import { useEffect, useMemo, useState } from 'react';
@@ -40,39 +40,64 @@ const displayPreference: ExplorerDisplayPreference = {
 
 /**
  * Scans workspace docs for any containing database blocks (Kanban boards, tables).
- * Returns an array of doc IDs that have at least one affine:database block.
+ * Properly loads and syncs each doc before scanning for blocks.
  */
-function useDocsWithDatabaseBlocks(): string[] {
+function useDocsWithDatabaseBlocks(): {
+  docIds: string[];
+  loading: boolean;
+} {
   const docsService = useService(DocsService);
-  const workspaceService = useService(WorkspaceService);
   const nonTrashDocIds = useLiveData(docsService.list.nonTrashDocsIds$);
   const [projectDocIds, setProjectDocIds] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const docCollection = workspaceService.workspace.docCollection;
-    const results: string[] = [];
+    let cancelled = false;
+    setLoading(true);
 
-    for (const docId of nonTrashDocIds) {
-      try {
-        const store = docCollection.getDoc(docId)?.getStore({ id: docId });
-        if (!store) continue;
-        const dbBlocks = store.getBlocksByFlavour('affine:database');
-        if (dbBlocks.length > 0) {
-          results.push(docId);
+    async function scan() {
+      const results: string[] = [];
+
+      for (const docId of nonTrashDocIds) {
+        if (cancelled) break;
+        const docRef = docsService.open(docId);
+        try {
+          if (!docRef.doc.blockSuiteDoc.ready) {
+            docRef.doc.blockSuiteDoc.load();
+          }
+          const disposePriorityLoad = docRef.doc.addPriorityLoad(10);
+          await docRef.doc.waitForSyncReady();
+          disposePriorityLoad();
+
+          const blocks =
+            docRef.doc.blockSuiteDoc.getBlocksByFlavour('affine:database');
+          if (blocks.length > 0) {
+            results.push(docId);
+          }
+        } catch {
+          // Skip docs that fail to load
+        } finally {
+          docRef.release();
         }
-      } catch {
-        // Skip docs that can't be scanned (not yet synced, etc.)
+      }
+
+      if (!cancelled) {
+        setProjectDocIds(results);
+        setLoading(false);
       }
     }
 
-    setProjectDocIds(results);
-  }, [nonTrashDocIds, workspaceService]);
+    scan();
+    return () => {
+      cancelled = true;
+    };
+  }, [nonTrashDocIds, docsService]);
 
-  return projectDocIds;
+  return { docIds: projectDocIds, loading };
 }
 
 const ProjectsPage = () => {
-  const projectDocIds = useDocsWithDatabaseBlocks();
+  const { docIds: projectDocIds, loading } = useDocsWithDatabaseBlocks();
 
   const [explorerContextValue] = useState(() =>
     createDocExplorerContext(displayPreference)
@@ -94,7 +119,12 @@ const ProjectsPage = () => {
       <ViewHeader />
       <ViewBody>
         <div className={styles.body}>
-          {projectDocIds.length === 0 ? (
+          {loading ? (
+            <div className={styles.loadingState}>
+              <Loading size={24} />
+              <div>Scanning docs for projects...</div>
+            </div>
+          ) : projectDocIds.length === 0 ? (
             <div className={styles.emptyState}>
               <div className={styles.emptyIcon}>
                 <ViewLayersIcon />

@@ -55,7 +55,6 @@ import { AppSidebarProjectsButton } from './projects-button';
 import { SidebarAudioPlayer } from './sidebar-audio-player';
 import { TemplateDocEntrance } from './template-doc-entrance';
 import { TrashButton } from './trash-button';
-import { UpdaterButton } from './updater-button';
 import UserInfo from './user-info';
 
 export type RootAppSidebarProps = {
@@ -277,7 +276,7 @@ export const RootAppSidebar = memo((): ReactElement => {
       </SidebarScrollableContainer>
       <SidebarContainer className={bottomContainer}>
         <SidebarAudioPlayer />
-        {BUILD_CONFIG.isElectron ? <UpdaterButton /> : <AppDownloadButton />}
+        {!BUILD_CONFIG.isElectron && <AppDownloadButton />}
       </SidebarContainer>
     </AppSidebar>
   );
