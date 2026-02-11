@@ -38,6 +38,7 @@ import {
   ShareIcon,
   SplitViewIcon,
   TocIcon,
+  ViewLayersIcon,
 } from '@blocksuite/icons/rc';
 import {
   useLiveData,
@@ -48,6 +49,7 @@ import { useCallback, useState } from 'react';
 
 import { HeaderDropDownButton } from '../../../components/pure/header-drop-down-button';
 import { useFavorite } from '../favorite';
+import { useProject } from '../project';
 import { HistoryTipsModal } from './history-tips-modal';
 import { shareMenu } from './style.css';
 
@@ -153,6 +155,7 @@ const PageHeaderMenuItem = ({
   const openInAppService = useServiceOptional(OpenInAppService);
 
   const { favorite, toggleFavorite } = useFavorite(pageId);
+  const { isProject, toggleProject } = useProject(pageId);
 
   const { duplicate } = useBlockSuiteMetaHelper();
 
@@ -372,6 +375,13 @@ const PageHeaderMenuItem = ({
         {favorite
           ? t['com.affine.favoritePageOperation.remove']()
           : t['com.affine.favoritePageOperation.add']()}
+      </MenuItem>
+      <MenuItem
+        data-testid="editor-option-menu-project"
+        onSelect={toggleProject}
+        prefixIcon={<ViewLayersIcon />}
+      >
+        {isProject ? 'Remove from Projects' : 'Add to Projects'}
       </MenuItem>
       <MenuSeparator />
       <MenuItem

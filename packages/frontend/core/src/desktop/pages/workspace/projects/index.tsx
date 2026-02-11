@@ -1,4 +1,3 @@
-import { Loading } from '@affine/component';
 import {
   createDocExplorerContext,
   DocExplorerContext,
@@ -38,66 +37,23 @@ const displayPreference: ExplorerDisplayPreference = {
   showMoreOperation: true,
 };
 
-/**
- * Scans workspace docs for any containing database blocks (Kanban boards, tables).
- * Properly loads and syncs each doc before scanning for blocks.
- */
-function useDocsWithDatabaseBlocks(): {
-  docIds: string[];
-  loading: boolean;
-} {
+function useProjectDocIds(): string[] {
   const docsService = useService(DocsService);
+  const allValues = useLiveData(
+    docsService.propertyValues$('custom:isProject')
+  );
   const nonTrashDocIds = useLiveData(docsService.list.nonTrashDocsIds$);
-  const [projectDocIds, setProjectDocIds] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-
-    async function scan() {
-      const results: string[] = [];
-
-      for (const docId of nonTrashDocIds) {
-        if (cancelled) break;
-        const docRef = docsService.open(docId);
-        try {
-          if (!docRef.doc.blockSuiteDoc.ready) {
-            docRef.doc.blockSuiteDoc.load();
-          }
-          const disposePriorityLoad = docRef.doc.addPriorityLoad(10);
-          await docRef.doc.waitForSyncReady();
-          disposePriorityLoad();
-
-          const blocks =
-            docRef.doc.blockSuiteDoc.getBlocksByFlavour('affine:database');
-          if (blocks.length > 0) {
-            results.push(docId);
-          }
-        } catch {
-          // Skip docs that fail to load
-        } finally {
-          docRef.release();
-        }
-      }
-
-      if (!cancelled) {
-        setProjectDocIds(results);
-        setLoading(false);
-      }
-    }
-
-    scan();
-    return () => {
-      cancelled = true;
-    };
-  }, [nonTrashDocIds, docsService]);
-
-  return { docIds: projectDocIds, loading };
+  return useMemo(() => {
+    const nonTrashSet = new Set(nonTrashDocIds);
+    return [...allValues.entries()]
+      .filter(([id, val]) => val === 'true' && nonTrashSet.has(id))
+      .map(([id]) => id);
+  }, [allValues, nonTrashDocIds]);
 }
 
 const ProjectsPage = () => {
-  const { docIds: projectDocIds, loading } = useDocsWithDatabaseBlocks();
+  const projectDocIds = useProjectDocIds();
 
   const [explorerContextValue] = useState(() =>
     createDocExplorerContext(displayPreference)
@@ -119,19 +75,14 @@ const ProjectsPage = () => {
       <ViewHeader />
       <ViewBody>
         <div className={styles.body}>
-          {loading ? (
-            <div className={styles.loadingState}>
-              <Loading size={24} />
-              <div>Scanning docs for projects...</div>
-            </div>
-          ) : projectDocIds.length === 0 ? (
+          {projectDocIds.length === 0 ? (
             <div className={styles.emptyState}>
               <div className={styles.emptyIcon}>
                 <ViewLayersIcon />
               </div>
               <div>No projects yet</div>
               <div>
-                Create a Kanban board in any doc and it will appear here
+                Use the ••• menu on any doc to add it to Projects
               </div>
             </div>
           ) : (
